@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { mergeClasses } from '@/components/lib/utils'
+import { mergeClasses } from '@/lib/utils'
 
 defineOptions({
   name: 'BaseButton',
