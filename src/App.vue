@@ -9,7 +9,12 @@
 
     <!-- Main Content Area -->
     <div class="max-w-7xl mx-auto">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <!-- Add Elements Panel -->
+        <div>
+          <AddElements @add-element="handleAddElement" />
+        </div>
+
         <!-- Canvas Area -->
         <div class="lg:col-span-2">
           <div class="bg-white p-6 rounded-lg shadow-lg">
@@ -114,9 +119,11 @@ import { Monitor, Smartphone, Info } from 'lucide-vue-next'
 import ColorPicker from '@/components/ui/ColorPicker.vue'
 import DraggableElement from '@/components/DraggableElement.vue'
 import ElementProperties from '@/components/ElementProperties.vue'
+import AddElements from '@/components/AddElements.vue'
 import { defaultDesign } from '@/lib/defaultDesign'
 import { useDragAndDrop, type ViewMode } from '@/composables/useDragAndDrop'
-import type { PopupElement } from '@/types'
+import { createElement } from '@/lib/elementFactory'
+import type { PopupElement, ElementType } from '@/types'
 
 // Reactive state for the design data
 const design = ref({ ...defaultDesign })
@@ -186,6 +193,17 @@ const updateSelectedElement = (updates: Partial<PopupElement>) => {
 const deleteSelectedElement = () => {
   if (selectedElement.value) {
     onElementDelete(selectedElement.value)
+  }
+}
+
+// Handle adding new elements
+const handleAddElement = (type: ElementType) => {
+  try {
+    const newElement = createElement(type, design.value.width, design.value.height)
+    design.value.elements.push(newElement)
+    selectedElement.value = newElement.id // For instant customization
+  } catch (err) {
+    console.error('Failed to create new element:', err)
   }
 }
 
