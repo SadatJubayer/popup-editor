@@ -16,7 +16,6 @@ export function createElementStyle(
     zIndex: 1,
   }
 
-  // Type-specific styling
   switch (element.type) {
     case 'svg':
       return {

@@ -107,7 +107,6 @@ const displayHeight = computed(() =>
 const containerClasses = computed(() => {
   const baseClasses = 'relative transition-all duration-300 flex-shrink-0'
 
-  // Add a mobile type for mobile view
   const mobileClasses =
     props.viewMode === 'mobile'
       ? "border-[16px] border-gray-800 rounded-[3rem] bg-gray-800 shadow-2xl before:content-[''] before:absolute before:top-0 before:left-1/2 before:transform before:-translate-x-1/2 before:w-20 before:h-6 before:bg-gray-800 before:rounded-b-xl before:-mt-3 after:content-[''] after:absolute after:bottom-3 after:left-1/2 after:transform after:-translate-x-1/2 after:w-20 after:h-1 after:bg-gray-600 after:rounded-full py-32"

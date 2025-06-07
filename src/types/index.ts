@@ -15,12 +15,10 @@ export const VIEW_MODES = {
   MOBILE: 'mobile',
 } as const
 
-// Type aliases for better maintainability
 export type ElementType = (typeof ELEMENT_TYPES)[keyof typeof ELEMENT_TYPES]
 export type SvgType = (typeof SVG_TYPES)[keyof typeof SVG_TYPES]
 export type ViewMode = (typeof VIEW_MODES)[keyof typeof VIEW_MODES]
 
-// Base element interface
 export interface BasePopupElement {
   id: string
   type: ElementType
@@ -31,7 +29,6 @@ export interface BasePopupElement {
   height?: number
 }
 
-// Type-specific element interfaces for better type safety
 export interface TextElement extends BasePopupElement {
   type: typeof ELEMENT_TYPES.TEXT
   fontSize?: number
@@ -61,7 +58,6 @@ export interface SvgElement extends BasePopupElement {
   svgSize?: number
 }
 
-// Union type for all popup elements
 export type PopupElement = TextElement | ButtonElement | InputElement | SvgElement
 
 export interface PopupDesign {

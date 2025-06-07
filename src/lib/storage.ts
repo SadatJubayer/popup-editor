@@ -4,7 +4,6 @@ import { defaultDesign } from './defaultDesign'
 const STORAGE_KEY = 'popup-design'
 
 export const StorageService = {
-  // Load design from localStorage
   loadCurrentDesign(): PopupDesign {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
@@ -15,11 +14,9 @@ export const StorageService = {
     } catch (error) {
       console.error('Failed to load design from localStorage:', error)
     }
-    // Return default design if nothing saved or error occurred
     return { ...defaultDesign }
   },
 
-  // Save design to localStorage
   saveCurrentDesign(design: PopupDesign): boolean {
     try {
       const designToSave = {
@@ -34,7 +31,6 @@ export const StorageService = {
     }
   },
 
-  // Clear saved design from localStorage
   clearCurrentDesign(): boolean {
     try {
       localStorage.removeItem(STORAGE_KEY)

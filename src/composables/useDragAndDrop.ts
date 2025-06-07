@@ -16,7 +16,6 @@ export function useDragAndDrop(
   const dragStartElement = ref<PopupElement | null>(null)
 
   const handleMouseDown = (e: MouseEvent, elementId: string, element: PopupElement) => {
-    // Don't allow in mobile
     if (viewMode.value === VIEW_MODES.MOBILE) return
 
     e.preventDefault()
@@ -29,7 +28,6 @@ export function useDragAndDrop(
     dragElement.value = elementId
     dragStartElement.value = element
 
-    // Account for the scale factor
     const elementX = (element.x || 0) * scale.value
     const elementY = (element.y || 0) * scale.value
 
@@ -53,15 +51,12 @@ export function useDragAndDrop(
     const rect = dropZoneRef.value?.getBoundingClientRect()
     if (!rect) return
 
-    // Calculate new position accounting for scale
     const scaledX = (e.clientX - rect.left - dragOffset.value.x) / scale.value
     const scaledY = (e.clientY - rect.top - dragOffset.value.y) / scale.value
 
-    // Get element dimensions for boundary checking
     const elementWidth = dragStartElement.value.width || 100
     const elementHeight = dragStartElement.value.height || 40
 
-    // Constrain within canvas boundaries
     const newX = Math.max(0, Math.min(design.value.width - elementWidth, scaledX))
     const newY = Math.max(0, Math.min(design.value.height - elementHeight, scaledY))
 

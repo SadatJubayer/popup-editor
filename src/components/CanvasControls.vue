@@ -10,11 +10,7 @@
     <div class="space-y-4">
       <!-- Background Color -->
       <div class="space-y-2">
-        <label class="text-sm font-medium text-gray-700 flex items-center">
-          <Palette class="h-4 w-4 mr-1 text-purple-500" />
-          Background Color
-        </label>
-        <ColorPicker v-model="backgroundColor" />
+        <ColorPicker v-model="backgroundColor" label="Background Color" />
       </div>
 
       <!-- Width & Height -->
@@ -86,15 +82,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import {
-  Settings,
-  Palette,
-  ArrowLeftRight,
-  ArrowUpDown,
-  Eye,
-  Save,
-  RotateCcw,
-} from 'lucide-vue-next'
+import { Settings, ArrowLeftRight, ArrowUpDown, Eye, Save, RotateCcw } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import ColorPicker from '@/components/ui/ColorPicker.vue'
 
@@ -116,12 +104,10 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-// Local reactive values
 const backgroundColor = ref(props.backgroundColor)
 const width = ref(props.canvasWidth)
 const height = ref(props.canvasHeight)
 
-// Watch for prop changes
 watch(
   () => props.backgroundColor,
   (newVal) => {
@@ -143,7 +129,6 @@ watch(
   },
 )
 
-// Watch for local changes and emit
 watch(backgroundColor, (newVal) => {
   emit('update:backgroundColor', newVal)
 })

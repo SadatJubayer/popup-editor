@@ -1,295 +1,134 @@
 <template>
-  <div class="h-screen bg-white flex flex-col">
-    <!-- Header -->
-    <AppHeader />
+  <MainLayout>
+    <template #sidebar>
+      <AddElements @add-element="elementOps.handleAddElement" />
+      <CanvasControls
+        :background-color="designState.design.value.backgroundColor"
+        :canvas-width="designState.design.value.width"
+        :canvas-height="designState.design.value.height"
+        @update:background-color="designState.updateBackgroundColor"
+        @update:canvas-width="designState.updateCanvasWidth"
+        @update:canvas-height="designState.updateCanvasHeight"
+        @preview="handlePreview"
+        @save="designState.saveDesign"
+        @reset="designState.resetDesign"
+      />
+    </template>
 
-    <!-- Main Content Area -->
-    <div class="flex-1 p-4 lg:p-8 lg:px-4 lg:pt-2">
-      <div class="max-w-7xl mx-auto h-full">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 h-full">
-          <!-- Add Elements Panel -->
-          <div class="space-y-0 lg:space-y-4">
-            <AddElements @add-element="handleAddElement" />
-            <CanvasControls
-              :background-color="design.backgroundColor"
-              :canvas-width="design.width"
-              :canvas-height="design.height"
-              @update:background-color="updateBackgroundColor"
-              @update:canvas-width="updateCanvasWidth"
-              @update:canvas-height="updateCanvasHeight"
-              @preview="handlePreview"
-              @save="handleSave"
-              @reset="handleReset"
-            />
-          </div>
+    <template #canvas>
+      <DesignCanvas
+        ref="canvasRef"
+        :design="designState.design.value"
+        :selected-element-id="designState.selectedElementId.value"
+        :view-mode="viewMode"
+        @update:view-mode="updateViewMode"
+        @canvas:click="handleCanvasClick"
+        @canvas:mouse-move="handleCanvasMouseMove"
+        @element:select="designState.selectElement"
+        @element:delete="designState.deleteElement"
+        @element:drag-start="handleElementDragStart"
+      />
+    </template>
 
-          <!-- Canvas Area -->
-          <div class="lg:col-span-2 border-l border-r border-gray-200 px-4">
-            <div>
-              <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-semibold text-gray-800">Editor</h2>
-                <div class="flex bg-gray-200 rounded-md">
-                  <button
-                    :class="[
-                      'px-3 py-2 text-sm font-medium rounded-l-md transition-colors',
-                      viewModeRef === 'desktop'
-                        ? 'bg-blue-500 text-white'
-                        : 'text-gray-700 hover:bg-gray-300',
-                    ]"
-                    @click="viewModeRef = 'desktop'"
-                    :aria-label="'Switch to desktop view'"
-                  >
-                    <Monitor class="h-4 w-4 mr-1 inline" />
-                    Desktop
-                  </button>
-                  <button
-                    :class="[
-                      'px-3 py-2 text-sm font-medium rounded-r-md transition-colors',
-                      viewModeRef === 'mobile'
-                        ? 'bg-blue-500 text-white'
-                        : 'text-gray-700 hover:bg-gray-300',
-                    ]"
-                    @click="viewModeRef = 'mobile'"
-                    :aria-label="'Switch to mobile view'"
-                  >
-                    <Smartphone class="h-4 w-4 mr-1 inline" />
-                    Mobile
-                  </button>
-                </div>
-              </div>
-              <div class="flex justify-center items-center min-h-[600px] overflow-x-auto">
-                <div class="relative">
-                  <div
-                    ref="dropZoneRef"
-                    class="relative shadow-2xl rounded-full transition-transform duration-300"
-                    :style="{
-                      backgroundColor: design.backgroundColor,
-                      width: `${design.width * currentScale}px`,
-                      height: `${design.height * currentScale}px`,
-                      transform: viewModeRef === 'mobile' ? 'scale(0.8)' : 'scale(1)',
-                    }"
-                    data-canvas
-                    @click="handleCanvasClick"
-                    @mousemove="handleMouseMove"
-                  >
-                    <!-- White border inside the circle -->
-                    <div
-                      class="absolute inset-0 rounded-full pointer-events-none z-10 border-4 border-white m-1"
-                    />
+    <template #properties>
+      <ElementProperties
+        :element="designState.selectedElement.value"
+        :canvas-width="designState.design.value.width"
+        :canvas-height="designState.design.value.height"
+        @update="
+          elementOps.handleUpdateSelectedElement(designState.selectedElementId.value, $event)
+        "
+        @delete="elementOps.handleDeleteSelectedElement(designState.selectedElementId.value)"
+      />
+    </template>
 
-                    <!-- Draggable Elements -->
-                    <DraggableElement
-                      v-for="element in design.elements"
-                      :key="element.id"
-                      :element="element"
-                      :is-selected="selectedElement === element.id"
-                      :scale="currentScale"
-                      :view-mode="viewModeRef"
-                      @select="() => onElementSelect(element.id)"
-                      @delete="() => onElementDelete(element.id)"
-                      @drag-start="(e, element) => handleMouseDown(e, element.id, element)"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <!-- Mobile Mode Info -->
-              <div
-                v-if="viewModeRef === 'mobile'"
-                class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"
-              >
-                <div class="flex items-center text-blue-700">
-                  <Info class="h-4 w-4 mr-1 inline" />
-                  <span class="text-sm">Mobile preview mode - Dragging is disabled!.</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Properties Panel -->
-          <div class="lg:col-span-1">
-            <ElementProperties
-              :element="selectedElementData"
-              :canvas-width="design.width"
-              :canvas-height="design.height"
-              @update="updateSelectedElement"
-              @delete="deleteSelectedElement"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Preview Dialog -->
-    <PreviewDialog
-      :design="design"
-      :is-open="isPreviewOpen"
-      :view-mode="viewModeRef"
-      @close="isPreviewOpen = false"
-    />
-  </div>
+    <template #dialogs>
+      <PreviewDialog
+        :design="designState.design.value"
+        :is-open="isPreviewOpen"
+        :view-mode="viewMode"
+        @close="isPreviewOpen = false"
+      />
+    </template>
+  </MainLayout>
 </template>
 
 <script setup lang="ts">
 import 'vue-toast-notification/dist/theme-sugar.css'
 
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { Monitor, Smartphone, Info } from 'lucide-vue-next'
-import AppHeader from '@/components/AppHeader.vue'
-import DraggableElement from '@/components/DraggableElement.vue'
+import MainLayout from '@/components/MainLayout.vue'
+import DesignCanvas from '@/components/DesignCanvas.vue'
 import ElementProperties from '@/components/ElementProperties.vue'
 import AddElements from '@/components/AddElements.vue'
 import CanvasControls from '@/components/CanvasControls.vue'
 import PreviewDialog from '@/components/PreviewDialog.vue'
-import { defaultDesign } from '@/lib/defaultDesign'
-import { StorageService } from '@/lib/storage'
+import { useDesignState } from '@/composables/useDesignState'
+import { useElementOperations } from '@/composables/useElementOperations'
 import { useDragAndDrop, type ViewMode } from '@/composables/useDragAndDrop'
-import { createElement } from '@/lib/elementFactory'
-import type { PopupElement, ElementType } from '@/types'
-import { useToast } from 'vue-toast-notification'
+import type { PopupElement } from '@/types'
 
-const toast = useToast()
-
-// Load design from localStorage or use default
-function loadDesignFromStorage() {
-  return StorageService.loadCurrentDesign()
-}
-
-// Reactive state for the design data
-const design = ref(loadDesignFromStorage())
-const selectedElement = ref<string | null>(null)
-const dropZoneRef = ref<HTMLElement | null>(null)
+const designState = useDesignState()
+const viewMode = ref<ViewMode>('desktop')
 const isPreviewOpen = ref(false)
+const canvasRef = ref<InstanceType<typeof DesignCanvas> | null>(null)
 
-// Element management functions
-const onElementSelect = (id: string | null) => {
-  selectedElement.value = id
-}
+const designDimensions = computed(() => ({
+  width: designState.design.value.width,
+  height: designState.design.value.height,
+}))
 
-const onElementUpdate = (id: string, updates: Partial<PopupElement>) => {
-  const elementIndex = design.value.elements.findIndex((el) => el.id === id)
-  if (elementIndex !== -1) {
-    design.value.elements[elementIndex] = { ...design.value.elements[elementIndex], ...updates }
-  }
-}
-
-const onElementDelete = (id: string) => {
-  design.value.elements = design.value.elements.filter((el) => el.id !== id)
-  if (selectedElement.value === id) {
-    selectedElement.value = null
-  }
-}
-
-// Drag and drop setup
-const designRef = computed(() => ({ width: design.value.width, height: design.value.height }))
-const viewModeRef = ref<ViewMode>('desktop')
-
-// Scale computation based on view mode
-const currentScale = computed(() => {
-  return viewModeRef.value === 'mobile' ? 0.8 : 1
+const elementOps = useElementOperations(designDimensions, {
+  onElementAdd: designState.addElement,
+  onElementUpdate: designState.updateElement,
+  onElementDelete: designState.deleteElement,
+  onElementSelect: designState.selectElement,
 })
 
-const scaleRef = computed(() => currentScale.value)
+const currentScale = computed(() => (viewMode.value === 'mobile' ? 0.8 : 1))
 
 const {
-  handleMouseDown,
-  handleMouseMove: dragMouseMove,
-  handleMouseUp,
-} = useDragAndDrop(designRef, onElementUpdate, onElementSelect, viewModeRef, scaleRef)
+  handleMouseDown: dragHandleMouseDown,
+  handleMouseMove: dragHandleMouseMove,
+  handleMouseUp: dragHandleMouseUp,
+} = useDragAndDrop(
+  designDimensions,
+  designState.updateElement,
+  designState.selectElement,
+  viewMode,
+  currentScale,
+)
 
-// Canvas interaction handlers
+const updateViewMode = (mode: ViewMode) => {
+  viewMode.value = mode
+}
+
 const handleCanvasClick = (e: MouseEvent) => {
   if (e.target === e.currentTarget) {
-    onElementSelect(null)
+    designState.selectElement(null)
   }
 }
 
-const handleMouseMove = (e: MouseEvent) => {
-  dragMouseMove(e, dropZoneRef)
-}
-
-// Computed properties
-const selectedElementData = computed(() => {
-  if (!selectedElement.value) return null
-  return design.value.elements.find((el) => el.id === selectedElement.value) || null
-})
-
-// Element update functions
-const updateSelectedElement = (updates: Partial<PopupElement>) => {
-  if (selectedElement.value) {
-    onElementUpdate(selectedElement.value, updates)
+const handleCanvasMouseMove = (e: MouseEvent, canvasElement: HTMLElement | null) => {
+  if (canvasElement) {
+    dragHandleMouseMove(e, { value: canvasElement })
   }
 }
 
-const deleteSelectedElement = () => {
-  if (selectedElement.value) {
-    onElementDelete(selectedElement.value)
-  }
-}
-
-// Handle adding new elements
-const handleAddElement = (type: ElementType) => {
-  try {
-    const newElement = createElement(type, design.value.width, design.value.height)
-    design.value.elements.push(newElement)
-    selectedElement.value = newElement.id // For instant customization
-  } catch (err) {
-    toast.error('Failed to create new element:', err)
-  }
-}
-
-// Canvas control handlers
-const updateBackgroundColor = (color: string) => {
-  design.value.backgroundColor = color
-}
-
-const updateCanvasWidth = (width: number) => {
-  design.value.width = width
-}
-
-const updateCanvasHeight = (height: number) => {
-  design.value.height = height
+const handleElementDragStart = (e: MouseEvent, id: string, element: PopupElement) => {
+  dragHandleMouseDown(e, id, element)
 }
 
 const handlePreview = () => {
   isPreviewOpen.value = true
 }
 
-const handleSave = () => {
-  const success = StorageService.saveCurrentDesign(design.value)
-  if (success) {
-    toast.success('Design saved successfully!')
-  } else {
-    toast.error('Failed to save design')
-  }
-}
-
-const handleReset = () => {
-  if (
-    confirm(
-      'Are you sure you want to reset to default design? This will remove all elements and settings.',
-    )
-  ) {
-    design.value = { ...defaultDesign }
-    selectedElement.value = null
-
-    // Clear saved design from localStorage
-    const success = StorageService.clearCurrentDesign()
-    if (success) {
-      toast.success('Design reset to default!')
-    } else {
-      toast.error('Design reset but failed to clear saved state')
-    }
-  }
-}
-
-// Lifecycle hooks
 onMounted(() => {
-  document.addEventListener('mouseup', handleMouseUp)
+  document.addEventListener('mouseup', dragHandleMouseUp)
 })
 
 onUnmounted(() => {
-  document.removeEventListener('mouseup', handleMouseUp)
+  document.removeEventListener('mouseup', dragHandleMouseUp)
 })
 </script>
 

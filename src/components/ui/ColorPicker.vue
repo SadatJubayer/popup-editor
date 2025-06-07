@@ -1,6 +1,9 @@
 <template>
-  <div class="space-y-2">
-    <label class="text-sm font-medium text-gray-700">{{ label }}</label>
+  <div class="flex flex-col space-y-2">
+    <label class="text-sm font-medium text-gray-700 flex items-center">
+      <Palette class="h-4 w-4 mr-1 text-purple-500" />
+      {{ label }}</label
+    >
     <div class="flex items-center gap-3">
       <div
         class="w-12 min-w-10 h-10 rounded-lg border-2 border-gray-300 shadow-lg cursor-pointer transition-transform hover:scale-105"
@@ -27,6 +30,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { Palette } from 'lucide-vue-next'
 
 interface Props {
   modelValue: string
