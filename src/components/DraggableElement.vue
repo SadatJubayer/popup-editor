@@ -34,6 +34,7 @@ import { computed, h } from 'vue'
 import type { PopupElement } from '@/types'
 import { ELEMENT_TYPES, SVG_TYPES } from '@/types'
 import { createElementStyle, mergeClasses } from '@/lib/utils'
+import { SVGIcons } from '@/lib/constants'
 
 interface Props {
   element: PopupElement
@@ -54,37 +55,6 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<Emits>()
-
-const SVGIcons = {
-  [SVG_TYPES.STAR]: h(
-    'svg',
-    {
-      viewBox: '0 0 24 24',
-      fill: 'currentColor',
-      xmlns: 'http://www.w3.org/2000/svg',
-      'aria-label': 'Star icon',
-    },
-    [
-      h('path', {
-        d: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
-      }),
-    ],
-  ),
-  [SVG_TYPES.HEART]: h(
-    'svg',
-    {
-      viewBox: '0 0 24 24',
-      fill: 'currentColor',
-      xmlns: 'http://www.w3.org/2000/svg',
-      'aria-label': 'Heart icon',
-    },
-    [
-      h('path', {
-        d: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z',
-      }),
-    ],
-  ),
-}
 
 const elementStyle = computed(() => createElementStyle(props.element, props.scale))
 

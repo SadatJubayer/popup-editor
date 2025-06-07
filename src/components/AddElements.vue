@@ -1,6 +1,8 @@
 <template>
   <div class="bg-white p-6 rounded-lg shadow-lg w-full">
-    <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+    <h3
+      class="text-lg font-semibold mb-4 text-gray-800 flex items-center border-b border-gray-200 pb-2"
+    >
       <Plus class="h-5 w-5 mr-2 text-blue-500" />
       Add Elements
     </h3>
@@ -8,7 +10,7 @@
     <div class="grid grid-cols-2 gap-4">
       <Button
         variant="outline"
-        class="h-12 px-4 flex-row justify-start items-center bg-white hover:bg-blue-50 border-2 border-blue-200 hover:border-blue-400 transition-all duration-500 ease-in-out text-black hover:shadow-xl hover:scale-105 group"
+        class="py-1 px-4 flex-row justify-start items-center bg-white hover:bg-blue-50 border-2 border-blue-200 hover:border-blue-400 transition-all duration-500 ease-in-out text-black hover:shadow-xl hover:scale-105 group"
         @click="addElement('text')"
       >
         <FileText
@@ -19,7 +21,7 @@
 
       <Button
         variant="outline"
-        class="h-12 px-4 flex-row justify-start items-center bg-white hover:bg-green-50 border-2 border-blue-200 hover:border-blue-400 transition-all duration-500 ease-in-out text-black hover:shadow-xl hover:scale-105 group"
+        class="py-1 px-4 flex-row justify-start items-center bg-white hover:bg-green-50 border-2 border-blue-200 hover:border-blue-400 transition-all duration-500 ease-in-out text-black hover:shadow-xl hover:scale-105 group"
         @click="addElement('button')"
       >
         <RectangleHorizontal
@@ -30,7 +32,7 @@
 
       <Button
         variant="outline"
-        class="h-12 px-4 flex-row justify-start items-center bg-white hover:bg-purple-50 border-2 border-blue-200 hover:border-blue-400 transition-all duration-500 ease-in-out text-black hover:shadow-xl hover:scale-105 group"
+        class="py-1 px-4 flex-row justify-start items-center bg-white hover:bg-purple-50 border-2 border-blue-200 hover:border-blue-400 transition-all duration-500 ease-in-out text-black hover:shadow-xl hover:scale-105 group"
         @click="addElement('input')"
       >
         <TextCursor
@@ -41,7 +43,7 @@
 
       <Button
         variant="outline"
-        class="h-12 px-4 flex-row justify-start items-center bg-white hover:bg-orange-50 border-2 border-blue-200 hover:border-blue-400 transition-all duration-500 ease-in-out text-black hover:shadow-xl hover:scale-105 group"
+        class="py-1 px-4 flex-row justify-start items-center bg-white hover:bg-orange-50 border-2 border-blue-200 hover:border-blue-400 transition-all duration-500 ease-in-out text-black hover:shadow-xl hover:scale-105 group"
         @click="addElement('svg')"
       >
         <Shapes

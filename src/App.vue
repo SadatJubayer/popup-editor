@@ -1,18 +1,22 @@
 <template>
   <div class="min-h-screen bg-gray-100 p-8">
-    <!-- Header Controls -->
-    <div class="max-w-7xl mx-auto mb-6">
-      <div class="bg-white p-6 rounded-lg shadow-lg">
-        <ColorPicker v-model="design.backgroundColor" label="Popup Background Color" />
-      </div>
-    </div>
-
     <!-- Main Content Area -->
     <div class="max-w-7xl mx-auto">
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <!-- Add Elements Panel -->
-        <div>
+        <div class="space-y-4">
           <AddElements @add-element="handleAddElement" />
+          <CanvasControls
+            :background-color="design.backgroundColor"
+            :canvas-width="design.width"
+            :canvas-height="design.height"
+            @update:background-color="updateBackgroundColor"
+            @update:canvas-width="updateCanvasWidth"
+            @update:canvas-height="updateCanvasHeight"
+            @preview="handlePreview"
+            @save="handleSave"
+            @reset="handleReset"
+          />
         </div>
 
         <!-- Canvas Area -->
@@ -110,16 +114,25 @@
         </div>
       </div>
     </div>
+
+    <!-- Preview Dialog -->
+    <PreviewDialog
+      :design="design"
+      :is-open="isPreviewOpen"
+      :view-mode="viewModeRef"
+      @close="isPreviewOpen = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Monitor, Smartphone, Info } from 'lucide-vue-next'
-import ColorPicker from '@/components/ui/ColorPicker.vue'
 import DraggableElement from '@/components/DraggableElement.vue'
 import ElementProperties from '@/components/ElementProperties.vue'
 import AddElements from '@/components/AddElements.vue'
+import CanvasControls from '@/components/CanvasControls.vue'
+import PreviewDialog from '@/components/PreviewDialog.vue'
 import { defaultDesign } from '@/lib/defaultDesign'
 import { useDragAndDrop, type ViewMode } from '@/composables/useDragAndDrop'
 import { createElement } from '@/lib/elementFactory'
@@ -129,6 +142,7 @@ import type { PopupElement, ElementType } from '@/types'
 const design = ref({ ...defaultDesign })
 const selectedElement = ref<string | null>(null)
 const dropZoneRef = ref<HTMLElement | null>(null)
+const isPreviewOpen = ref(false)
 
 // Element management functions
 const onElementSelect = (id: string | null) => {
@@ -204,6 +218,36 @@ const handleAddElement = (type: ElementType) => {
     selectedElement.value = newElement.id // For instant customization
   } catch (err) {
     console.error('Failed to create new element:', err)
+  }
+}
+
+// Canvas control handlers
+const updateBackgroundColor = (color: string) => {
+  design.value.backgroundColor = color
+}
+
+const updateCanvasWidth = (width: number) => {
+  design.value.width = width
+}
+
+const updateCanvasHeight = (height: number) => {
+  design.value.height = height
+}
+
+const handlePreview = () => {
+  isPreviewOpen.value = true
+}
+
+const handleSave = () => {}
+
+const handleReset = () => {
+  if (
+    confirm(
+      'Are you sure you want to reset to default design? This will remove all elements and settings.',
+    )
+  ) {
+    design.value = { ...defaultDesign }
+    selectedElement.value = null
   }
 }
 
