@@ -126,6 +126,8 @@
 </template>
 
 <script setup lang="ts">
+import 'vue-toast-notification/dist/theme-sugar.css'
+
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Monitor, Smartphone, Info } from 'lucide-vue-next'
 import DraggableElement from '@/components/DraggableElement.vue'
@@ -134,12 +136,21 @@ import AddElements from '@/components/AddElements.vue'
 import CanvasControls from '@/components/CanvasControls.vue'
 import PreviewDialog from '@/components/PreviewDialog.vue'
 import { defaultDesign } from '@/lib/defaultDesign'
+import { StorageService } from '@/lib/storage'
 import { useDragAndDrop, type ViewMode } from '@/composables/useDragAndDrop'
 import { createElement } from '@/lib/elementFactory'
 import type { PopupElement, ElementType } from '@/types'
+import { useToast } from 'vue-toast-notification'
+
+const toast = useToast()
+
+// Load design from localStorage or use default
+function loadDesignFromStorage() {
+  return StorageService.loadCurrentDesign()
+}
 
 // Reactive state for the design data
-const design = ref({ ...defaultDesign })
+const design = ref(loadDesignFromStorage())
 const selectedElement = ref<string | null>(null)
 const dropZoneRef = ref<HTMLElement | null>(null)
 const isPreviewOpen = ref(false)
@@ -217,7 +228,7 @@ const handleAddElement = (type: ElementType) => {
     design.value.elements.push(newElement)
     selectedElement.value = newElement.id // For instant customization
   } catch (err) {
-    console.error('Failed to create new element:', err)
+    toast.error('Failed to create new element:', err)
   }
 }
 
@@ -238,7 +249,14 @@ const handlePreview = () => {
   isPreviewOpen.value = true
 }
 
-const handleSave = () => {}
+const handleSave = () => {
+  const success = StorageService.saveCurrentDesign(design.value)
+  if (success) {
+    toast.success('Design saved successfully!')
+  } else {
+    toast.error('Failed to save design')
+  }
+}
 
 const handleReset = () => {
   if (
@@ -248,6 +266,14 @@ const handleReset = () => {
   ) {
     design.value = { ...defaultDesign }
     selectedElement.value = null
+
+    // Clear saved design from localStorage
+    const success = StorageService.clearCurrentDesign()
+    if (success) {
+      toast.success('Design reset to default!')
+    } else {
+      toast.error('Design reset but failed to clear saved state')
+    }
   }
 }
 
