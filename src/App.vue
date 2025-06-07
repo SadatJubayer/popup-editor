@@ -111,7 +111,8 @@ const handleCanvasClick = (e: MouseEvent) => {
 
 const handleCanvasMouseMove = (e: MouseEvent, canvasElement: HTMLElement | null) => {
   if (canvasElement) {
-    dragHandleMouseMove(e, { value: canvasElement })
+    const canvasElementRef = ref(canvasElement)
+    dragHandleMouseMove(e, canvasElementRef)
   }
 }
 
