@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white p-6 rounded-lg shadow-lg w-full">
+  <div class="p-6 w-full">
     <h3
       class="text-lg font-semibold mb-4 text-gray-800 flex items-center border-b border-gray-200 pb-2"
     >

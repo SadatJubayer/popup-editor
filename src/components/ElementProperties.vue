@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white p-6 rounded-lg shadow-lg h-fit">
+  <div class="p-6 h-fit">
     <h3 class="text-lg font-semibold mb-4 text-gray-800">
       {{ element ? `${elementTypeLabel} Properties` : 'No Element Selected' }}
     </h3>

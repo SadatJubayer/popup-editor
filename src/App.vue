@@ -1,116 +1,121 @@
 <template>
-  <div class="min-h-screen bg-gray-100 p-8">
+  <div class="h-screen bg-white flex flex-col">
+    <!-- Header -->
+    <AppHeader />
+
     <!-- Main Content Area -->
-    <div class="max-w-7xl mx-auto">
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        <!-- Add Elements Panel -->
-        <div class="space-y-4">
-          <AddElements @add-element="handleAddElement" />
-          <CanvasControls
-            :background-color="design.backgroundColor"
-            :canvas-width="design.width"
-            :canvas-height="design.height"
-            @update:background-color="updateBackgroundColor"
-            @update:canvas-width="updateCanvasWidth"
-            @update:canvas-height="updateCanvasHeight"
-            @preview="handlePreview"
-            @save="handleSave"
-            @reset="handleReset"
-          />
-        </div>
+    <div class="flex-1 p-4 lg:p-8 lg:px-4 lg:pt-2">
+      <div class="max-w-7xl mx-auto h-full">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 h-full">
+          <!-- Add Elements Panel -->
+          <div class="space-y-0 lg:space-y-4">
+            <AddElements @add-element="handleAddElement" />
+            <CanvasControls
+              :background-color="design.backgroundColor"
+              :canvas-width="design.width"
+              :canvas-height="design.height"
+              @update:background-color="updateBackgroundColor"
+              @update:canvas-width="updateCanvasWidth"
+              @update:canvas-height="updateCanvasHeight"
+              @preview="handlePreview"
+              @save="handleSave"
+              @reset="handleReset"
+            />
+          </div>
 
-        <!-- Canvas Area -->
-        <div class="lg:col-span-2">
-          <div class="bg-white p-6 rounded-lg shadow-lg">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-xl font-semibold text-gray-800">Editor</h2>
-              <div class="flex bg-gray-200 rounded-md">
-                <button
-                  :class="[
-                    'px-3 py-2 text-sm font-medium rounded-l-md transition-colors',
-                    viewModeRef === 'desktop'
-                      ? 'bg-blue-500 text-white'
-                      : 'text-gray-700 hover:bg-gray-300',
-                  ]"
-                  @click="viewModeRef = 'desktop'"
-                  :aria-label="'Switch to desktop view'"
-                >
-                  <Monitor class="h-4 w-4 mr-1 inline" />
-                  Desktop
-                </button>
-                <button
-                  :class="[
-                    'px-3 py-2 text-sm font-medium rounded-r-md transition-colors',
-                    viewModeRef === 'mobile'
-                      ? 'bg-blue-500 text-white'
-                      : 'text-gray-700 hover:bg-gray-300',
-                  ]"
-                  @click="viewModeRef = 'mobile'"
-                  :aria-label="'Switch to mobile view'"
-                >
-                  <Smartphone class="h-4 w-4 mr-1 inline" />
-                  Mobile
-                </button>
+          <!-- Canvas Area -->
+          <div class="lg:col-span-2 border-l border-r border-gray-200 px-4">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Editor</h2>
+                <div class="flex bg-gray-200 rounded-md">
+                  <button
+                    :class="[
+                      'px-3 py-2 text-sm font-medium rounded-l-md transition-colors',
+                      viewModeRef === 'desktop'
+                        ? 'bg-blue-500 text-white'
+                        : 'text-gray-700 hover:bg-gray-300',
+                    ]"
+                    @click="viewModeRef = 'desktop'"
+                    :aria-label="'Switch to desktop view'"
+                  >
+                    <Monitor class="h-4 w-4 mr-1 inline" />
+                    Desktop
+                  </button>
+                  <button
+                    :class="[
+                      'px-3 py-2 text-sm font-medium rounded-r-md transition-colors',
+                      viewModeRef === 'mobile'
+                        ? 'bg-blue-500 text-white'
+                        : 'text-gray-700 hover:bg-gray-300',
+                    ]"
+                    @click="viewModeRef = 'mobile'"
+                    :aria-label="'Switch to mobile view'"
+                  >
+                    <Smartphone class="h-4 w-4 mr-1 inline" />
+                    Mobile
+                  </button>
+                </div>
               </div>
-            </div>
-            <div class="flex justify-center items-center min-h-[600px] overflow-x-auto">
-              <div class="relative">
-                <div
-                  ref="dropZoneRef"
-                  class="relative shadow-2xl rounded-full transition-transform duration-300"
-                  :style="{
-                    backgroundColor: design.backgroundColor,
-                    width: `${design.width * currentScale}px`,
-                    height: `${design.height * currentScale}px`,
-                    transform: viewModeRef === 'mobile' ? 'scale(0.8)' : 'scale(1)',
-                  }"
-                  data-canvas
-                  @click="handleCanvasClick"
-                  @mousemove="handleMouseMove"
-                >
-                  <!-- White border inside the circle -->
+              <div class="flex justify-center items-center min-h-[600px] overflow-x-auto">
+                <div class="relative">
                   <div
-                    class="absolute inset-0 rounded-full pointer-events-none z-10 border-4 border-white m-1"
-                  />
+                    ref="dropZoneRef"
+                    class="relative shadow-2xl rounded-full transition-transform duration-300"
+                    :style="{
+                      backgroundColor: design.backgroundColor,
+                      width: `${design.width * currentScale}px`,
+                      height: `${design.height * currentScale}px`,
+                      transform: viewModeRef === 'mobile' ? 'scale(0.8)' : 'scale(1)',
+                    }"
+                    data-canvas
+                    @click="handleCanvasClick"
+                    @mousemove="handleMouseMove"
+                  >
+                    <!-- White border inside the circle -->
+                    <div
+                      class="absolute inset-0 rounded-full pointer-events-none z-10 border-4 border-white m-1"
+                    />
 
-                  <!-- Draggable Elements -->
-                  <DraggableElement
-                    v-for="element in design.elements"
-                    :key="element.id"
-                    :element="element"
-                    :is-selected="selectedElement === element.id"
-                    :scale="currentScale"
-                    :view-mode="viewModeRef"
-                    @select="() => onElementSelect(element.id)"
-                    @delete="() => onElementDelete(element.id)"
-                    @drag-start="(e, element) => handleMouseDown(e, element.id, element)"
-                  />
+                    <!-- Draggable Elements -->
+                    <DraggableElement
+                      v-for="element in design.elements"
+                      :key="element.id"
+                      :element="element"
+                      :is-selected="selectedElement === element.id"
+                      :scale="currentScale"
+                      :view-mode="viewModeRef"
+                      @select="() => onElementSelect(element.id)"
+                      @delete="() => onElementDelete(element.id)"
+                      @drag-start="(e, element) => handleMouseDown(e, element.id, element)"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mobile Mode Info -->
+              <div
+                v-if="viewModeRef === 'mobile'"
+                class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"
+              >
+                <div class="flex items-center text-blue-700">
+                  <Info class="h-4 w-4 mr-1 inline" />
+                  <span class="text-sm">Mobile preview mode - Dragging is disabled!.</span>
                 </div>
               </div>
             </div>
-
-            <!-- Mobile Mode Info -->
-            <div
-              v-if="viewModeRef === 'mobile'"
-              class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"
-            >
-              <div class="flex items-center text-blue-700">
-                <Info class="h-4 w-4 mr-1 inline" />
-                <span class="text-sm">Mobile preview mode - Dragging is disabled!.</span>
-              </div>
-            </div>
           </div>
-        </div>
 
-        <!-- Properties Panel -->
-        <div class="lg:col-span-1">
-          <ElementProperties
-            :element="selectedElementData"
-            :canvas-width="design.width"
-            :canvas-height="design.height"
-            @update="updateSelectedElement"
-            @delete="deleteSelectedElement"
-          />
+          <!-- Properties Panel -->
+          <div class="lg:col-span-1">
+            <ElementProperties
+              :element="selectedElementData"
+              :canvas-width="design.width"
+              :canvas-height="design.height"
+              @update="updateSelectedElement"
+              @delete="deleteSelectedElement"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -130,6 +135,7 @@ import 'vue-toast-notification/dist/theme-sugar.css'
 
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Monitor, Smartphone, Info } from 'lucide-vue-next'
+import AppHeader from '@/components/AppHeader.vue'
 import DraggableElement from '@/components/DraggableElement.vue'
 import ElementProperties from '@/components/ElementProperties.vue'
 import AddElements from '@/components/AddElements.vue'
