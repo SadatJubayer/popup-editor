@@ -3,7 +3,7 @@
     <label class="text-sm font-medium text-gray-700">{{ label }}</label>
     <div class="flex items-center gap-3">
       <div
-        class="w-12 h-10 rounded-lg border-2 border-white shadow-lg cursor-pointer transition-transform hover:scale-105"
+        class="w-12 h-10 rounded-lg border-2 border-gray-300 shadow-lg cursor-pointer transition-transform hover:scale-105"
         :style="{ backgroundColor: modelValue }"
         @click="() => colorInputRef?.click()"
       />
