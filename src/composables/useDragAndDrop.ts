@@ -30,6 +30,8 @@ export function useDragAndDrop(
   }
   let dragStarted = false
   let initialMousePos = { x: 0, y: 0 }
+  let animationFrameId: number | null = null
+  let lastMouseEvent: MouseEvent | null = null
 
   const handleMouseDown = (e: MouseEvent, elementId: string, element: PopupElement) => {
     if (viewMode.value === VIEW_MODES.MOBILE) return
@@ -73,6 +75,39 @@ export function useDragAndDrop(
     document.addEventListener('mouseup', handleGlobalMouseUp)
   }
 
+  // Optimized function to update element position using requestAnimationFrame
+  const updateElementPosition = () => {
+    if (!lastMouseEvent || !dragElementRef || !dragStartElement.value) return
+
+    const rect = dragElementRef.closest('[data-canvas]')?.getBoundingClientRect()
+    if (!rect) return
+
+    // Calculate the new position based on mouse position
+    const newLeft = lastMouseEvent.clientX - rect.left - dragOffset.value.x
+    const newTop = lastMouseEvent.clientY - rect.top - dragOffset.value.y
+
+    // Convert to logical coordinates
+    const logicalX = newLeft / scale.value
+    const logicalY = newTop / scale.value
+
+    // Apply boundaries
+    const elementWidth = dragStartElement.value.width || 100
+    const elementHeight = dragStartElement.value.height || 40
+    const boundedX = Math.max(0, Math.min(design.value.width - elementWidth, logicalX))
+    const boundedY = Math.max(0, Math.min(design.value.height - elementHeight, logicalY))
+
+    // Apply the bounded position directly to the element
+    const finalLeft = boundedX * scale.value
+    const finalTop = boundedY * scale.value
+
+    dragElementRef.style.left = `${finalLeft}px`
+    dragElementRef.style.top = `${finalTop}px`
+    dragElementRef.style.transform = 'none' // Clear any existing transform
+
+    // Reset animation frame ID
+    animationFrameId = null
+  }
+
   const handleGlobalMouseMove = (e: MouseEvent) => {
     if (!dragElement.value || !dragElementRef || !dragStartElement.value) return
 
@@ -100,36 +135,25 @@ export function useDragAndDrop(
 
     e.preventDefault()
 
-    const rect = dragElementRef.closest('[data-canvas]')?.getBoundingClientRect()
-    if (!rect) return
+    // Store the latest mouse event
+    lastMouseEvent = e
 
-    // Calculate the new position based on mouse position
-    const newLeft = e.clientX - rect.left - dragOffset.value.x
-    const newTop = e.clientY - rect.top - dragOffset.value.y
-
-    // Convert to logical coordinates
-    const logicalX = newLeft / scale.value
-    const logicalY = newTop / scale.value
-
-    // Apply boundaries
-    const elementWidth = dragStartElement.value.width || 100
-    const elementHeight = dragStartElement.value.height || 40
-    const boundedX = Math.max(0, Math.min(design.value.width - elementWidth, logicalX))
-    const boundedY = Math.max(0, Math.min(design.value.height - elementHeight, logicalY))
-
-    // Apply the bounded position directly to the element
-    const finalLeft = boundedX * scale.value
-    const finalTop = boundedY * scale.value
-
-    dragElementRef.style.left = `${finalLeft}px`
-    dragElementRef.style.top = `${finalTop}px`
-    dragElementRef.style.transform = 'none' // Clear any existing transform
+    // Use requestAnimationFrame to throttle updates for smooth performance
+    if (animationFrameId === null) {
+      animationFrameId = requestAnimationFrame(updateElementPosition)
+    }
   }
 
   const handleGlobalMouseUp = () => {
     // Clean up global listeners
     document.removeEventListener('mousemove', handleGlobalMouseMove)
     document.removeEventListener('mouseup', handleGlobalMouseUp)
+
+    // Cancel any pending animation frame
+    if (animationFrameId !== null) {
+      cancelAnimationFrame(animationFrameId)
+      animationFrameId = null
+    }
 
     if (!dragElement.value || !dragStartElement.value) {
       resetDragState()
@@ -170,6 +194,13 @@ export function useDragAndDrop(
     dragStartElement.value = null
     dragElementRef = null
     dragStarted = false
+    lastMouseEvent = null
+
+    // Cancel any pending animation frame
+    if (animationFrameId !== null) {
+      cancelAnimationFrame(animationFrameId)
+      animationFrameId = null
+    }
   }
 
   // Legacy method for compatibility - now handled by global listeners
