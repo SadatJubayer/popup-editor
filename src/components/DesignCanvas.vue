@@ -18,7 +18,6 @@
           }"
           data-canvas
           @click="handleCanvasClick"
-          @mousemove="handleMouseMove"
         >
           <!-- White border inside the circle -->
           <div
@@ -68,7 +67,6 @@ interface Props {
 interface Emits {
   (e: 'update:viewMode', value: ViewMode): void
   (e: 'canvas:click', event: MouseEvent): void
-  (e: 'canvas:mouseMove', event: MouseEvent, canvasRef: HTMLElement | null): void
   (e: 'element:select', id: string): void
   (e: 'element:delete', id: string): void
   (e: 'element:dragStart', event: MouseEvent, id: string, element: PopupElement): void
@@ -87,10 +85,6 @@ const handleCanvasClick = (e: MouseEvent) => {
   if (e.target === e.currentTarget) {
     emit('canvas:click', e)
   }
-}
-
-const handleMouseMove = (e: MouseEvent) => {
-  emit('canvas:mouseMove', e, canvasRef.value)
 }
 
 defineExpose({

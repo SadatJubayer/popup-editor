@@ -14,6 +14,22 @@ export function useDragAndDrop(
   const dragElement = ref<string | null>(null)
   const dragOffset = ref({ x: 0, y: 0 })
   const dragStartElement = ref<PopupElement | null>(null)
+  let dragElementRef: HTMLElement | null = null
+  let originalStyles: {
+    left: string
+    top: string
+    transform: string
+    zIndex: string
+    transition: string
+  } = {
+    left: '',
+    top: '',
+    transform: '',
+    zIndex: '',
+    transition: '',
+  }
+  let dragStarted = false
+  let initialMousePos = { x: 0, y: 0 }
 
   const handleMouseDown = (e: MouseEvent, elementId: string, element: PopupElement) => {
     if (viewMode.value === VIEW_MODES.MOBILE) return
@@ -21,53 +37,149 @@ export function useDragAndDrop(
     e.preventDefault()
     e.stopPropagation()
 
-    const rect = (e.currentTarget as HTMLElement)?.closest('[data-canvas]')?.getBoundingClientRect()
+    const elementEl = e.currentTarget as HTMLElement
+    const rect = elementEl.closest('[data-canvas]')?.getBoundingClientRect()
     if (!rect) return
 
-    isDragging.value = true
+    // First, ensure the element is selected
+    onElementSelect(elementId)
+
+    // Store initial state but don't start dragging yet
     dragElement.value = elementId
     dragStartElement.value = element
+    dragElementRef = elementEl
+    dragStarted = false
 
-    const elementX = (element.x || 0) * scale.value
-    const elementY = (element.y || 0) * scale.value
+    initialMousePos = { x: e.clientX, y: e.clientY }
 
-    dragOffset.value = {
-      x: e.clientX - rect.left - elementX,
-      y: e.clientY - rect.top - elementY,
+    // Store original styles
+    originalStyles = {
+      left: dragElementRef.style.left,
+      top: dragElementRef.style.top,
+      transform: dragElementRef.style.transform,
+      zIndex: dragElementRef.style.zIndex,
+      transition: dragElementRef.style.transition,
     }
 
-    onElementSelect(elementId)
+    // Calculate offset from mouse to element origin
+    const elementRect = elementEl.getBoundingClientRect()
+    dragOffset.value = {
+      x: e.clientX - elementRect.left,
+      y: e.clientY - elementRect.top,
+    }
+
+    // Add global mouse event listeners for potential drag
+    document.addEventListener('mousemove', handleGlobalMouseMove, { passive: false })
+    document.addEventListener('mouseup', handleGlobalMouseUp)
   }
 
-  const handleMouseMove = (e: MouseEvent, dropZoneRef: Ref<HTMLElement | null>) => {
-    if (
-      !isDragging.value ||
-      !dragElement.value ||
-      viewMode.value === VIEW_MODES.MOBILE ||
-      !dragStartElement.value
-    )
-      return
+  const handleGlobalMouseMove = (e: MouseEvent) => {
+    if (!dragElement.value || !dragElementRef || !dragStartElement.value) return
 
-    const rect = dropZoneRef.value?.getBoundingClientRect()
+    // Check if we've moved enough to start dragging (prevents accidental drags)
+    const deltaX = Math.abs(e.clientX - initialMousePos.x)
+    const deltaY = Math.abs(e.clientY - initialMousePos.y)
+    const threshold = 3 // pixels
+
+    if (!dragStarted && (deltaX > threshold || deltaY > threshold)) {
+      // Start actual dragging
+      isDragging.value = true
+      dragStarted = true
+
+      // Prepare element for dragging
+      document.body.style.cursor = 'grabbing'
+      document.body.style.userSelect = 'none'
+
+      if (dragElementRef) {
+        dragElementRef.style.transition = 'none'
+        dragElementRef.style.zIndex = '1000'
+      }
+    }
+
+    if (!dragStarted) return
+
+    e.preventDefault()
+
+    const rect = dragElementRef.closest('[data-canvas]')?.getBoundingClientRect()
     if (!rect) return
 
-    const scaledX = (e.clientX - rect.left - dragOffset.value.x) / scale.value
-    const scaledY = (e.clientY - rect.top - dragOffset.value.y) / scale.value
+    // Calculate the new position based on mouse position
+    const newLeft = e.clientX - rect.left - dragOffset.value.x
+    const newTop = e.clientY - rect.top - dragOffset.value.y
 
+    // Convert to logical coordinates
+    const logicalX = newLeft / scale.value
+    const logicalY = newTop / scale.value
+
+    // Apply boundaries
     const elementWidth = dragStartElement.value.width || 100
     const elementHeight = dragStartElement.value.height || 40
+    const boundedX = Math.max(0, Math.min(design.value.width - elementWidth, logicalX))
+    const boundedY = Math.max(0, Math.min(design.value.height - elementHeight, logicalY))
 
-    const newX = Math.max(0, Math.min(design.value.width - elementWidth, scaledX))
-    const newY = Math.max(0, Math.min(design.value.height - elementHeight, scaledY))
+    // Apply the bounded position directly to the element
+    const finalLeft = boundedX * scale.value
+    const finalTop = boundedY * scale.value
 
-    onElementUpdate(dragElement.value, { x: newX, y: newY })
+    dragElementRef.style.left = `${finalLeft}px`
+    dragElementRef.style.top = `${finalTop}px`
+    dragElementRef.style.transform = 'none' // Clear any existing transform
   }
 
-  const handleMouseUp = () => {
+  const handleGlobalMouseUp = () => {
+    // Clean up global listeners
+    document.removeEventListener('mousemove', handleGlobalMouseMove)
+    document.removeEventListener('mouseup', handleGlobalMouseUp)
+
+    if (!dragElement.value || !dragStartElement.value) {
+      resetDragState()
+      return
+    }
+
+    // Reset visual styles
+    document.body.style.cursor = ''
+    document.body.style.userSelect = ''
+
+    if (dragElementRef && dragStarted) {
+      // Get the final position from the element's style
+      const left = parseFloat(dragElementRef.style.left) || 0
+      const top = parseFloat(dragElementRef.style.top) || 0
+
+      // Convert back to logical coordinates
+      const finalX = left / scale.value
+      const finalY = top / scale.value
+
+      // Update the actual element position in the data
+      onElementUpdate(dragElement.value, { x: finalX, y: finalY })
+
+      // Restore original styles
+      dragElementRef.style.left = originalStyles.left
+      dragElementRef.style.top = originalStyles.top
+      dragElementRef.style.transform = originalStyles.transform
+      dragElementRef.style.zIndex = originalStyles.zIndex
+      dragElementRef.style.transition = originalStyles.transition
+    }
+
+    resetDragState()
+  }
+
+  const resetDragState = () => {
     isDragging.value = false
     dragElement.value = null
     dragOffset.value = { x: 0, y: 0 }
     dragStartElement.value = null
+    dragElementRef = null
+    dragStarted = false
+  }
+
+  // Legacy method for compatibility - now handled by global listeners
+  const handleMouseMove = () => {
+    // This is now handled by global listeners
+  }
+
+  const handleMouseUp = () => {
+    // This is now handled by global listeners
+    handleGlobalMouseUp()
   }
 
   return {

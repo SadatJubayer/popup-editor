@@ -23,7 +23,6 @@
         :view-mode="viewMode"
         @update:view-mode="updateViewMode"
         @canvas:click="handleCanvasClick"
-        @canvas:mouse-move="handleCanvasMouseMove"
         @element:select="designState.selectElement"
         @element:delete="designState.deleteElement"
         @element:drag-start="handleElementDragStart"
@@ -56,7 +55,7 @@
 <script setup lang="ts">
 import 'vue-toast-notification/dist/theme-sugar.css'
 
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import MainLayout from '@/components/MainLayout.vue'
 import DesignCanvas from '@/components/DesignCanvas.vue'
 import ElementProperties from '@/components/ElementProperties.vue'
@@ -87,11 +86,7 @@ const elementOps = useElementOperations(designDimensions, {
 
 const currentScale = computed(() => (viewMode.value === 'mobile' ? 0.8 : 1))
 
-const {
-  handleMouseDown: dragHandleMouseDown,
-  handleMouseMove: dragHandleMouseMove,
-  handleMouseUp: dragHandleMouseUp,
-} = useDragAndDrop(
+const { handleMouseDown: dragHandleMouseDown } = useDragAndDrop(
   designDimensions,
   designState.updateElement,
   designState.selectElement,
@@ -109,13 +104,6 @@ const handleCanvasClick = (e: MouseEvent) => {
   }
 }
 
-const handleCanvasMouseMove = (e: MouseEvent, canvasElement: HTMLElement | null) => {
-  if (canvasElement) {
-    const canvasElementRef = ref(canvasElement)
-    dragHandleMouseMove(e, canvasElementRef)
-  }
-}
-
 const handleElementDragStart = (e: MouseEvent, id: string, element: PopupElement) => {
   dragHandleMouseDown(e, id, element)
 }
@@ -123,14 +111,6 @@ const handleElementDragStart = (e: MouseEvent, id: string, element: PopupElement
 const handlePreview = () => {
   isPreviewOpen.value = true
 }
-
-onMounted(() => {
-  document.addEventListener('mouseup', dragHandleMouseUp)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('mouseup', dragHandleMouseUp)
-})
 </script>
 
 <style scoped></style>
