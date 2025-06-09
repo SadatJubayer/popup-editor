@@ -49,3 +49,23 @@ export function createElementStyle(
       return baseStyle
   }
 }
+
+/**
+ * Debounce function to limit the rate at which a function can fire.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
+  let timeout: ReturnType<typeof setTimeout> | null = null
+
+  return ((...args: Parameters<T>) => {
+    if (timeout) clearTimeout(timeout)
+    timeout = setTimeout(() => func(...args), wait)
+  }) as T
+}
+
+/**
+ * Clamp a number between min and max values
+ */
+export function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max)
+}
