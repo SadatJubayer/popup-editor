@@ -63,7 +63,7 @@ const elementClasses = computed(() => {
   const selectedClasses = props.isSelected
     ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-transparent'
     : ''
-  const cursorClasses = props.viewMode === 'desktop' ? 'cursor-move' : ''
+  const cursorClasses = 'cursor-move'
 
   return mergeClasses(baseClasses, selectedClasses, cursorClasses)
 })

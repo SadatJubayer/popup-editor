@@ -39,20 +39,11 @@
         </div>
       </div>
     </div>
-
-    <!-- Mobile Mode Info -->
-    <div v-if="viewMode === 'mobile'" class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-      <div class="flex items-center text-blue-700">
-        <Info class="h-4 w-4 mr-1 inline" />
-        <span class="text-sm">Mobile preview mode - Dragging is disabled!</span>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Info } from 'lucide-vue-next'
 import DraggableElement from '@/components/DraggableElement.vue'
 import ViewModeToggle from '@/components/ViewModeToggle.vue'
 import type { PopupDesign, PopupElement } from '@/types'

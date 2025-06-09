@@ -69,3 +69,10 @@ export function debounce<T extends (...args: any[]) => any>(func: T, wait: numbe
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
+
+/**
+ * Round number to specified decimal places
+ */
+export function roundToDecimalPlaces(value: number, decimals: number = 2): number {
+  return Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals)
+}

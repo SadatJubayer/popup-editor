@@ -1,5 +1,6 @@
 import { ref, type Ref } from 'vue'
-import { VIEW_MODES, type PopupElement } from '@/types'
+import type { PopupElement } from '@/types'
+import { roundToDecimalPlaces } from '@/lib/utils'
 
 export type ViewMode = 'desktop' | 'mobile'
 
@@ -34,8 +35,7 @@ export function useDragAndDrop(
   let lastMouseEvent: MouseEvent | null = null
 
   const handleMouseDown = (e: MouseEvent, elementId: string, element: PopupElement) => {
-    if (viewMode.value === VIEW_MODES.MOBILE) return
-
+    // Remove mobile view restriction - allow dragging on both desktop and mobile
     e.preventDefault()
     e.stopPropagation()
 
@@ -155,7 +155,10 @@ export function useDragAndDrop(
       animationFrameId = null
     }
 
-    if (!dragElement.value || !dragStartElement.value) {
+    const currentDragElement = dragElement.value
+    const wasDragging = dragStarted
+
+    if (!currentDragElement || !dragStartElement.value) {
       resetDragState()
       return
     }
@@ -164,26 +167,32 @@ export function useDragAndDrop(
     document.body.style.cursor = ''
     document.body.style.userSelect = ''
 
-    if (dragElementRef && dragStarted) {
+    if (dragElementRef && wasDragging) {
       // Get the final position from the element's style
       const left = parseFloat(dragElementRef.style.left) || 0
       const top = parseFloat(dragElementRef.style.top) || 0
 
-      // Convert back to logical coordinates
-      const finalX = left / scale.value
-      const finalY = top / scale.value
+      // Convert back to logical coordinates and round to 2 decimal places
+      const finalX = roundToDecimalPlaces(left / scale.value, 2)
+      const finalY = roundToDecimalPlaces(top / scale.value, 2)
 
-      // Update the actual element position in the data
-      onElementUpdate(dragElement.value, { x: finalX, y: finalY })
-
-      // Restore original styles
+      // Restore original styles first
       dragElementRef.style.left = originalStyles.left
       dragElementRef.style.top = originalStyles.top
       dragElementRef.style.transform = originalStyles.transform
       dragElementRef.style.zIndex = originalStyles.zIndex
       dragElementRef.style.transition = originalStyles.transition
+
+      // Update the element position and ensure selection is maintained
+      onElementUpdate(currentDragElement, { x: finalX, y: finalY })
+
+      // Use a small delay to ensure the update has been processed
+      setTimeout(() => {
+        onElementSelect(currentDragElement)
+      }, 10)
     }
 
+    // Reset drag state
     resetDragState()
   }
 
@@ -203,11 +212,6 @@ export function useDragAndDrop(
     }
   }
 
-  // Legacy method for compatibility - now handled by global listeners
-  const handleMouseMove = () => {
-    // This is now handled by global listeners
-  }
-
   const handleMouseUp = () => {
     // This is now handled by global listeners
     handleGlobalMouseUp()
@@ -218,7 +222,6 @@ export function useDragAndDrop(
     dragElement,
     dragOffset,
     handleMouseDown,
-    handleMouseMove,
     handleMouseUp,
   }
 }
